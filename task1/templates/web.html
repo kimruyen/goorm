@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>네이버 뉴스 크롤러</title>
+</head>
+<body>
+    <form method="POST" action="/">
+        <br>
+            <label for="sday">시작날짜를 입력하세요.</label>
+            <label for="eday">종료날짜를 입력하세요.</label>
+            <label for="press">언론사를 입력하세요.</label>
+        </br>
+
+        <br>
+            <input type="date" name="sday" id="sday" required>
+            <input type="date" name="eday" id="eday" required>
+            <input type="text" name="press" id="press">
+        </br>
+
+
+        <br>
+            <label for="num">페이지 넘버를 입력하세요.</label>
+            <label for="size">페이지 사이즈를 입력하세요.</label>
+        </br>
+        <br>
+            <input type="number" name="num" id="num">
+            <input type="number" name="size" id="size">
+        </br>
+        <br>
+            <button>크롤링 실행</button>
+        </br>
+    </form>
+</body>
+</html>
