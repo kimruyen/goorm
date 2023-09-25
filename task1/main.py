@@ -36,12 +36,15 @@ def main():
             pageSize = int(pageSize)
             final = Data[(pageNum - 1) * pageSize:pageSize*pageNum]
 
+        final.reset_index(drop=True, inplace=True)
+
         if len(final) != 0:
             return render_template('result.html',
                                    dateData=final['date'], categoryData=final['category'],
                                    pressData=final['press'], titleData=final['title'],
                                    documentData=final['document'], linkData=final['link'],
                                    length=len(final))
+
         else:
             return render_template('web.html')
     return render_template('web.html')
