@@ -10,9 +10,6 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
-column = ['date', 'category', 'press', 'title', 'document', 'link']
-result = pd.DataFrame(columns=column)
-
 
 @app.route("/", methods=["GET", "POST"])
 def main():
@@ -23,7 +20,30 @@ def main():
         pageNum = request.form['num']
         pageSize = request.form['size']
         param = [startDate, endDate]
-        work(param)
+
+        data = work(param)
+
+        Data = data.copy()
+
+        if press == '':
+            final = Data
+        else:
+            Data = Data[Data['press'] == press]
+        if pageNum == '' or pageSize == '':
+            final = Data
+        else:
+            pageNum = int(pageNum)
+            pageSize = int(pageSize)
+            final = Data[(pageNum - 1) * pageSize:pageSize*pageNum]
+
+        if len(final) != 0:
+            return render_template('result.html',
+                                   dateData=final['date'], categoryData=final['category'],
+                                   pressData=final['press'], titleData=final['title'],
+                                   documentData=final['document'], linkData=final['link'],
+                                   length=len(final))
+        else:
+            return render_template('web.html')
     return render_template('web.html')
 
 
@@ -31,20 +51,25 @@ def work(param):
     """
     :param param:
     """
+    column = ['date', 'category', 'press', 'title', 'document', 'link']
+    result = pd.DataFrame(columns=column)
+
     # param : 시작 날짜, 종료 날짜
     if param[1] == '' or param[0] == '':
         period = 3
         periods = list(pd.date_range(datetime.today(), periods=period, freq='-1D').strftime('%Y%m%d'))
     else:
-        sTime = datetime.strptime(param[1], '%Y-%m-%d')
-        eTime = datetime.strptime(param[2], '%Y-%m-%d')
+        sTime = datetime.strptime(param[0], '%Y-%m-%d')
+        eTime = datetime.strptime(param[1], '%Y-%m-%d')
         periods = list(pd.date_range(sTime, eTime, freq='1D').strftime('%Y%m%d'))
 
     try:
         for target in periods:
             page = 1
             while True:
-                source = Crawling(target, page)
+                source, Data = Crawling(target, page)
+                result = makeDF(result, Data)
+
                 print(f'{target}, {page} 페이지 완료')
 
                 page += 1
@@ -65,6 +90,9 @@ def work(param):
 
 
 def Crawling(target, page):
+    column = ['date', 'category', 'press', 'title', 'document', 'link']
+    pageData = pd.DataFrame(columns=column)
+
     url_main = f"https://news.naver.com/main/list.naver?mode=LS2D&mid=shm&sid2=230&sid1=105&date={target}&page={page}"
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -76,8 +104,6 @@ def Crawling(target, page):
     urlList = source.find('div', {'class': 'list_body newsflash_body'})
 
     urls_list = []
-
-    global result
 
     for urls in urlList.find_all('a'):
         if urls["href"].startswith("https://n.news.naver.com") and urls["href"] not in urls_list:
@@ -117,15 +143,11 @@ def Crawling(target, page):
             'document': [article],
             'link': [url]
         })
-
-        if len(result) == 0:
-            result = form
-        else:
-            result = pd.concat([result, form], ignore_index=True)
+        pageData = makeDF(pageData, form)
 
         time.sleep(5)
 
-    return source
+    return source, pageData
 
 
 def modArticle(article):
@@ -148,6 +170,14 @@ def modDate(date):
     date4 = date1 + date2 + date3
     date = str(pd.Timestamp(date4))
     return date
+
+
+def makeDF(a, b):
+    if len(a) == 0:
+        a = b
+    else:
+        a = pd.concat([a, b], ignore_index=True)
+    return a
 
 
 @app.errorhandler(404)

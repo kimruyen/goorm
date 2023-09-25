@@ -5,8 +5,25 @@
     <title>크롤링 결과</title>
 </head>
 <body>
-    {% for %}
+    <h2>크롤링 결과</h2>
+    <table border="1">
+        <th width="100">날짜</th>
+        <th width="100">카테고리</th>
+        <th>언론사</th>
+        <th>기사 제목</th>
+        <th>기사 내용</th>
+        <th>링크</th>
+        {% for i in range(length|int) %}
+        <tr height="30">
+            <td>{{dateData[i]}}</td>
+            <td>{{categoryData[i]}}</td>
+            <td>{{pressData[i]}}</td>
+            <td>{{titleData[i]}}</td>
+            <td>{{documentData[i]}}</td>
+            <td>{{linkData[i]}}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
-    {% endfor%}
 </body>
 </html>
